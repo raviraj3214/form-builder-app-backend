@@ -89,45 +89,43 @@ const userUpdate = async (req, res) => {
   const { id } = req.params;
   const { Newusername, Newemail, oldpassword, newpassword } = req.body;
 
-  if (!Newusername || !Newemail || !oldpassword || !newpassword) {
-    return res
-      .status(500)
-      .json({ success: false, message: "All Fields Required" });
-  }
-
   try {
-    const exist = await User.findById(id);
-
-    if (!exist) {
-      return res
-        .status(404)
-        .json({ success: false, message: "User Not Found" });
+    const user = await User.findById(id);
+    
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    const samePass = await bcrypt.compare(oldpassword, exist.password);
-
-    if (!samePass) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Worng email or password" });
+    if (oldpassword && newpassword) {
+      const isMatch = await bcrypt.compare(oldpassword, user.password);
+      if (!isMatch) {
+        return res.status(400).json({ success: false, message: "Incorrect old password" });
+      }
+      user.password = await bcrypt.hash(newpassword, 10);
+    } else if (oldpassword || newpassword) {
+      return res.status(400).json({ success: false, message: "Both old and new passwords are required to update the password" });
     }
 
-    const hashPass = await bcrypt.hash(newpassword, 10);
+    if (Newusername) user.username = Newusername;
+    
+    if (Newemail) {
+      const emailCheck = await User.findOne({ email: Newemail });
+      if (emailCheck) {
+        return res.status(409).json({ success: false, message: "This email is already registered" });
+      }
+      user.email = Newemail;
+    }
 
-    await User.findByIdAndUpdate(id, {
-      username: Newusername,
-      email: Newemail,
-      password: hashPass,
-    });
+    await user.save();
 
-    res.status(200).json({ success: true, message: "Updated Succesfully !" });
+    res.status(200).json({ success: true, message: "Updated successfully!" });
   } catch (error) {
     console.error(error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal Server Error !!" });
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
+
+
 
 const sharedWorkspace = async (req, res) => {
   const userId = req.user.id;
