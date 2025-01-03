@@ -2,7 +2,7 @@ const User = require("../model/userModel")
 const Workspace = require("../model/workspaceModel")
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const AppError = require("../utils/AppError");
+const AppError = require("../utils/appError");
 const catchAsync = require("../utils/catchAsync")
 require('dotenv').config({'path':'./.env'},);
 

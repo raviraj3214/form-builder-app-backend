@@ -1,7 +1,7 @@
 const { promisify } = require('util');
 const jwt = require("jsonwebtoken");
 const catchAsync = require("../utils/catchAsync")
-const AppError = require("../utils/AppError")
+const AppError = require("../utils/appError")
 const User = require("../model/userModel")
 require("dotenv").config();
 
